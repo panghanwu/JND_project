@@ -158,14 +158,12 @@ class Detector:
             return self.result
         
         
-    def mark_image(self, line_thick=3, show_text=True):
-        self.marked_image = self.image.copy()
-        
+    def mark_image(self, image, line_thick=3, show_text=True):
         if show_text:
-            text_size = np.floor(3e-2 * np.shape(self.marked_image)[1] + 0.5).astype('int32')
+            text_size = np.floor(3e-2 * np.shape(image)[1] + 0.5).astype('int32')
             font = ImageFont.truetype(font='simhei.ttf', size=text_size)
         
-        draw = ImageDraw.Draw(self.marked_image)
+        draw = ImageDraw.Draw(image)
         # sort bboxes by score
         for bbox in sorted(self.result, key=lambda s: s[2]):
             # bbox
@@ -177,4 +175,4 @@ class Detector:
                 draw.rectangle(text_po, fill=self.colors[bbox[0]], outline=self.colors[bbox[0]], width=3)
                 draw.text(text_po, tag, fill=(0,0,0), font=font)
         del draw
-        return self.marked_image
+        return image
