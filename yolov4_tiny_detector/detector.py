@@ -158,9 +158,10 @@ class Detector:
             return self.result
         
         
-    def mark_image(self, image, line_thick=3, show_text=True):
+    def mark_bboxes(self, show_text=True, line_thick=3, text_size=1):
+        image = self.image.copy()
         if show_text:
-            text_size = np.floor(3e-2 * np.shape(image)[1] + 0.5).astype('int32')
+            text_size = np.floor(text_size * 3e-2 * np.shape(image)[1] + 0.5).astype('int32')
             font = ImageFont.truetype(font='simhei.ttf', size=text_size)
         
         draw = ImageDraw.Draw(image)
@@ -171,8 +172,31 @@ class Detector:
             # tag
             if show_text:
                 tag = '{} {:.2f}'.format(bbox[1], bbox[2])
-                text_po = [bbox[3][0], bbox[3][1]-text_size, bbox[3][2], bbox[3][1]]
-                draw.rectangle(text_po, fill=self.colors[bbox[0]], outline=self.colors[bbox[0]], width=3)
-                draw.text(text_po, tag, fill=(0,0,0), font=font)
+                text_loc = [bbox[3][0], bbox[3][1]-text_size, bbox[3][2], bbox[3][1]]
+                draw.rectangle(text_loc, fill=self.colors[bbox[0]], outline=self.colors[bbox[0]], width=3)
+                draw.text(text_loc, tag, fill=(0,0,0), font=font)
+        del draw
+        return image
+    
+    
+    def mark_centers(self, show_text=True, point_size=6, text_size=1):
+        image = self.image.copy()
+        if show_text:
+            text_size = np.floor(text_size * 3e-2 * np.shape(image)[1] + 0.5).astype('int32')
+            font = ImageFont.truetype(font='simhei.ttf', size=text_size)
+        
+        draw = ImageDraw.Draw(image)
+        # sort bboxes by score
+        for bbox in sorted(self.result, key=lambda s: s[2]):
+            # get center from bbox
+            x = (bbox[3][0]+bbox[3][2]) / 2
+            y = (bbox[3][1]+bbox[3][3]) / 2
+            point_loc = [x-point_size, y-point_size, x+point_size, y+point_size]
+            draw.ellipse(point_loc, fill=self.colors[bbox[0]], outline=None, width=1)
+            # tag
+            if show_text:
+                tag = '{}'.format(bbox[1])
+                text_loc = [x, y-2*point_size]
+                draw.text(text_loc, tag, anchor='ms', fill=self.colors[bbox[0]], font=font)
         del draw
         return image
